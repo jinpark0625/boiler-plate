@@ -1,12 +1,9 @@
 "use strict";
 
-// database에 접근하기위해 file system을 호출한다.
 const fs = require("fs").promises;
 
 class UserStorage {
-  // 프라이빗한 변수나 매소드는 항상 최상단에
-  // convention 이다.
-  static #getUserInfo(data, id) {
+  static #getUserInfo(data, fields) {
     const users = JSON.parse(data);
     const idx = users.id.indexOf(id);
     const usersKeys = Object.keys(users);
@@ -18,22 +15,28 @@ class UserStorage {
     return userInfo;
   }
 
-  static getUsers(...fields) {
-    // const users = this.#users;
-    const newUsers = fields.reduce((newUser, field) => {
+  static #getUsers(data, isAll, fields) {
+    const users = JSON.parse(data);
+    if (isAll) return users;
+    const newUsers = fields.reduce((newUsers, field) => {
       if (users.hasOwnProperty(field)) {
-        newUser[field] = users[field];
+        newUsers[field] = users[field];
       }
-      return newUser;
+      return newUsers;
     }, {});
     return newUsers;
   }
 
+  static getUsers(isAll, ...fields) {
+    return fs
+      .readFile("./src/databases/users.json")
+      .then((data) => {
+        return this.#getUsers(data, isAll, fields);
+      })
+      .catch(console.error);
+  }
+
   static getUserInfo(id) {
-    // data 가 buffer data 16진수로 넘어오게된다.
-    // Json.parse()를 통해 우리의 언어로 변경한다.
-    // ./ 현재의 경로는 app.js의 경로다.
-    // readfile을 promise로 해야 return이 가능하다.
     return fs
       .readFile("./src/databases/users.json")
       .then((data) => {
@@ -42,12 +45,19 @@ class UserStorage {
       .catch(console.error);
   }
 
-  static save(userInfo) {
-    // const users = this.#users;
-    users.id.push(userInfo.id);
-    users.name.push(userInfo.name);
-    users.password.push(userInfo.password);
-    return { success: true };
+  static async save(userInfo) {
+    const users = await this.getUsers(true);
+
+    if (users.id.includes(userInfo.id)) {
+      throw "User already exists";
+    } else {
+      users.id.push(userInfo.id);
+      users.name.push(userInfo.name);
+      users.password.push(userInfo.password);
+
+      fs.writeFile("./src/databases/users.json", JSON.stringify(users));
+      return { success: true };
+    }
   }
 }
 
