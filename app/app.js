@@ -3,6 +3,10 @@
 // Modules
 const express = require("express");
 const bodyParser = require("body-parser");
+
+// Environment variables
+const dotenv = require("dotenv");
+dotenv.config();
 const app = express();
 
 // Routing
