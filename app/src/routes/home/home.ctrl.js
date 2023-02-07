@@ -6,15 +6,15 @@ const logger = require("../../config/logger");
 // get method
 const output = {
   home: (req, res) => {
-    logger.info(`GET / 200 "Go to index page"`);
+    logger.info(`GET / 304 "Go to index page"`);
     res.render("home/index");
   },
   login: (req, res) => {
-    logger.info(`GET /login 200 "Go to login page"`);
+    logger.info(`GET /login 304 "Go to login page"`);
     res.render("home/login");
   },
   register: (req, res) => {
-    logger.info(`GET /register 200 "Go to register page"`);
+    logger.info(`GET /register 304 "Go to register page"`);
     res.render("home/register");
   },
 };
@@ -24,34 +24,43 @@ const process = {
   login: async (req, res) => {
     const user = new User(req.body);
     const response = await user.login();
-    if (response.err) {
-      return logger.error(
-        `POST /login 200 Response: "success: ${response.succes}, msg: ${response.err}"`
-      );
-    } else
-      logger.info(
-        `POST /login 200 Response: "success: ${response.succes}, msg: ${response.msg}"`
-      );
-    return res.json(response);
+
+    const url = {
+      method: "POST",
+      path: "/login",
+      status: response.err ? 400 : 200,
+    };
+    log(response, url);
+    return res.status(url.status).json(response);
   },
 
   register: async (req, res) => {
     const user = new User(req.body);
     const response = await user.register();
-    if (response.err) {
-      return logger.error(
-        `POST /register 200 Response: "success: ${response.succes}, msg: ${response.err}"`
-      );
-    } else
-      logger.info(
-        `POST /register 200 Response: "success: ${response.succes}, msg: ${response.msg}"`
-      );
-
-    return res.json(response);
+    const url = {
+      method: "POST",
+      path: "/register",
+      status: response.err ? 409 : 201,
+    };
+    log(response, url);
+    return res.status(url.status).json(response);
   },
 };
 
 module.exports = {
   output,
   process,
+};
+
+const log = (response, url) => {
+  if (response.err) {
+    return logger.error(
+      `${url.method} /${url.path} ${url.status} Response: ${response.succes} ${response.err}"`
+    );
+  } else
+    logger.info(
+      `${url.method} /${url.path} ${url.status} Response: ${response.succes} ${
+        response.msg || ""
+      }"`
+    );
 };

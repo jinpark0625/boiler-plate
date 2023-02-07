@@ -34,6 +34,5 @@ function login(e) {
     })
     .catch((err) => {
       console.error("Login Error!");
-      console.log(err);
     });
 }
