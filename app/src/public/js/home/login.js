@@ -8,6 +8,9 @@ loginBtn.addEventListener("click", (e) => login(e));
 
 function login(e) {
   e.preventDefault();
+  if (!id.value) return alert("Please enter your id");
+  if (!password.value) return alert("Please enter your password");
+
   const req = {
     id: id.value,
     password: password.value,
@@ -24,6 +27,9 @@ function login(e) {
     .then((res) => {
       if (res.success) {
         location.href = "/";
+      } else {
+        if (res.err) return alert(res.err);
+        alert(res.msg);
       }
     })
     .catch((err) => {

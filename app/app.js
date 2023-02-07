@@ -3,6 +3,8 @@
 // Modules
 const express = require("express");
 const bodyParser = require("body-parser");
+const morgan = require("morgan");
+const logger = require("./src/config/logger");
 
 // Environment variables
 const dotenv = require("dotenv");
@@ -26,6 +28,7 @@ app.use(bodyParser.json());
 
 // Resolve the problem of incorrect recognition of characters such as Korean and spaces in data transmitted through the URL.
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(morgan("tiny", { stream: logger.stream }));
 
 // use => Method to register a middleware.
 app.use("/", home);
